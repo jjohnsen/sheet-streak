@@ -7,7 +7,7 @@
   }>();
 
   const targetValue = ref(0);
-  const duration = ref(props.duration || 2000);
+  //const duration = ref(props.duration || 2000);
 
   onMounted(() => {
     // Animation logic can be added here if needed

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import StatCounter from './components/StatCounter.vue' // <-- ADD THIS
 import Confetti from './components/Confetti.vue';
 import LevelBar, { xpForWeek } from './components/LevelBar.vue';
@@ -7,43 +7,18 @@ import LevelBar, { xpForWeek } from './components/LevelBar.vue';
 const params = new URLSearchParams(window.location.search);
 const weekParam = params.get('week') || '1';
 const week = ref<number>(parseInt(weekParam));
-
-//const xpPerWeek = 500;
-//const inputStreak = ref<number>(week.value)
-//const xp = computed(() => week.value * xpPerWeek) // 500XP per sheet
-//const currentLevel = computed(() => Math.floor(totalXP.value / 500) + 1) //  Level up every 500XP (5 weeks)
-
-// Progress to next level
-//const xpToNextLevelTotal = 230;
-//const xpForCurrentLevelStart = computed(() => (currentLevel.value - 1) * xpToNextLevelTotal)
-
-//const currentLevelXP = computed(() => totalXP.value - xpForCurrentLevelStart.value)
-//const progressPercentage = ref(0); // computed(() => (currentLevelXP.value / xpToNextLevelTotal) * 100)
-
 const weekDigits = computed( () => 
   week.value.toString().padStart(2, '0').split('')
 )
+import bg1 from './assets/background-1.jpg';
+import bg2 from './assets/background-2.jpg';
+import bg3 from './assets/background-3.jpg';
+import bg4 from './assets/background-4.jpg';
 
-//const animatedProgress = ref(0);
-/*
-const xpPerLevel = 500;
-const levelFromXp = function(xp: number): number {
-  const level = 0.15 * Math.sqrt(xp);
-  console.log('levelFromXp', xp, level);
-  return Math.floor(level);
-}
-
-const xpFromLevel = function(level: number): number {
-  return lebel*xpPerLevel;
-}
-
-onMounted(() => {
-  setTimeout(() => {
-    progressPercentage.value = 100; // Trigger computed
-  }, 500); // Delay before starting animation
-});
-*/
-const backgroundImage = ref(`url('/src/assets/background-${(week.value % 4)+1}.jpg')`);
+const backgrounds = [bg1, bg2, bg3, bg4];
+console.log('Backgrounds:', backgrounds);
+const background = backgrounds[week.value % 4];
+const backgroundImage = ref(`url('${background}')`);
 </script>
 
 <template>
@@ -89,6 +64,7 @@ const backgroundImage = ref(`url('/src/assets/background-${(week.value % 4)+1}.j
   height: 100vh;
   background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
   background-image: v-bind('backgroundImage');
+  /*background-image: url('assets/background-1.jpg');*/
   background-size: cover;
   background-position: center;
   display: flex;
