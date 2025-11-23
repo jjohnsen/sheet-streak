@@ -1,92 +1,76 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import StatCounter from './components/StatCounter.vue' // <-- ADD THIS
+import Confetti from './components/Confetti.vue';
+import LevelBar, { xpForWeek } from './components/LevelBar.vue';
 
+const params = new URLSearchParams(window.location.search);
+const weekParam = params.get('week') || '1';
+const week = ref<number>(parseInt(weekParam));
 
-const inputStreak = ref<number>(0)
-
-// 2. LOGIC ENGINE (Everything derives from inputStreak)
-const totalHours = computed(() => inputStreak.value * 40) // 40h work week
-const totalSheets = computed(() => inputStreak.value)
-const totalXP = computed(() => inputStreak.value * 100) // 100XP per sheet
-
-// Leveling logic: Level up every 500XP (5 weeks)
-const currentLevel = computed(() => Math.floor(totalXP.value / 500) + 1)
-const nextLevel = computed(() => currentLevel.value + 1)
+//const xpPerWeek = 500;
+//const inputStreak = ref<number>(week.value)
+//const xp = computed(() => week.value * xpPerWeek) // 500XP per sheet
+//const currentLevel = computed(() => Math.floor(totalXP.value / 500) + 1) //  Level up every 500XP (5 weeks)
 
 // Progress to next level
-const xpForCurrentLevelStart = computed(() => (currentLevel.value - 1) * 500)
-const xpToNextLevelTotal = 500
-const currentLevelXP = computed(() => totalXP.value - xpForCurrentLevelStart.value)
-const progressPercentage = computed(() => (currentLevelXP.value / xpToNextLevelTotal) * 100)
+//const xpToNextLevelTotal = 230;
+//const xpForCurrentLevelStart = computed(() => (currentLevel.value - 1) * xpToNextLevelTotal)
 
-// Formatting the big digits (e.g. "2" -> "0" "2")
-const streakDigits = computed(() => {
-  const s = inputStreak.value.toString().padStart(2, '0')
-  return s.split('') // ['0', '2']
-})
+//const currentLevelXP = computed(() => totalXP.value - xpForCurrentLevelStart.value)
+//const progressPercentage = ref(0); // computed(() => (currentLevelXP.value / xpToNextLevelTotal) * 100)
 
-// 3. INITIALIZATION
+const weekDigits = computed( () => 
+  week.value.toString().padStart(2, '0').split('')
+)
+
+//const animatedProgress = ref(0);
+/*
+const xpPerLevel = 500;
+const levelFromXp = function(xp: number): number {
+  const level = 0.15 * Math.sqrt(xp);
+  console.log('levelFromXp', xp, level);
+  return Math.floor(level);
+}
+
+const xpFromLevel = function(level: number): number {
+  return lebel*xpPerLevel;
+}
+
 onMounted(() => {
-  // Grab ?streak=X from the browser URL
-  const params = new URLSearchParams(window.location.search)
-  const streakParam = params.get('week')
-  
-  if (streakParam) {
-    inputStreak.value = parseInt(streakParam, 10)
-  } else {
-    // Default for demo purposes if no URL param exists
-    inputStreak.value = 2 
-  }
-})
+  setTimeout(() => {
+    progressPercentage.value = 100; // Trigger computed
+  }, 500); // Delay before starting animation
+});
+*/
+const backgroundImage = ref(`url('/src/assets/background-${(week.value % 4)+1}.jpg')`);
 </script>
 
 <template>
+  <Confetti />
   <div class="game-screen">
     <div class="hud-overlay">
       
-      <h1 class="title">{{ inputStreak }} WEEK STREAK!</h1>
-
+      <h1 class="title">{{ week }} WEEK STREAK!</h1>
+      
       <div class="streak-display">
-        <div v-for="(digit, index) in streakDigits" :key="index" class="digit-card">
+        <div v-for="(digit, index) in weekDigits" :key="index" class="digit-card">
           {{ digit }}
         </div>
       </div>
 
       <h2 class="subtitle">STREAK TOTALS</h2>
-
+    
       <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-value">{{ totalHours }}</span>
-          <span class="stat-label">HOURS BILLED</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ totalSheets }}</span>
-          <span class="stat-label">SHEETS DONE</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ totalXP }}</span>
-          <span class="stat-label">TOTAL XP</span>
-        </div>
+        <StatCounter :value="Math.round( week * (40 + Math.random()))">HOURS BILLED</StatCounter>
+        <StatCounter :value="week">SHEETS DONE</StatCounter>
+        <StatCounter :value="xpForWeek(week)">TOTAL XP</StatCounter>
       </div>
 
-      <div class="level-area">
-        <div class="level-info">
-          <span class="level-label">CURRENT LEVEL <strong>{{ currentLevel }}</strong></span>
-          <div class="xp-badge">📅 SHEET STREAK: +100 XP</div>
-          <span class="level-label">NEXT LEVEL <strong>{{ nextLevel }}</strong></span>
-        </div>
-
-        <div class="progress-track">
-          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
-        </div>
-        
-        <div class="xp-remaining">
-          {{ xpToNextLevelTotal - currentLevelXP }} XP UNTIL NEXT LEVEL
-        </div>
-      </div>
-
+      <LevelBar :week="week" />
+      <!--
       <button class="zwift-btn">CONTINUE</button>
-
+      -->
     </div>
   </div>
 </template>
@@ -103,7 +87,8 @@ onMounted(() => {
 .game-screen {
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('assets/background-1.jpg');
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+  background-image: v-bind('backgroundImage');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -167,63 +152,6 @@ onMounted(() => {
   margin-bottom: 3rem;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-value {
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  opacity: 0.8;
-  letter-spacing: 1px;
-}
-
-/* LEVEL PROGRESS BAR */
-.level-area {
-  margin-bottom: 3rem;
-  text-align: left;
-}
-
-.level-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 5px;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.xp-badge {
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.progress-track {
-  background: rgba(255, 255, 255, 0.3);
-  height: 24px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.progress-fill {
-  background-color: #0099ff; /* Zwift Blue */
-  height: 100%;
-  border-radius: 10px;
-  transition: width 1s ease-out;
-}
-
-.xp-remaining {
-  text-align: right;
-  font-size: 0.7rem;
-  margin-top: 5px;
-  opacity: 0.8;
-}
 
 /* BUTTON */
 .zwift-btn {
